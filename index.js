@@ -12,7 +12,7 @@ const newSlackMessageURL = "https://slack.com/api/chat.meMessage"
 const storiesURL = `https://www.pivotaltracker.com/services/v5/projects/${PIVOTAL_PROJECT_ID}/stories`
 
 const writeToSlack = (groupedStories) => {
-  
+
   // don't write to slack if no active stories.
   if(groupedStories.finished.length === 0 && 
      groupedStories.started.length === 0) return
@@ -30,9 +30,7 @@ const writeToSlack = (groupedStories) => {
       body: messageBody
     }, (err, res, body) => {
     if (err) { return console.log(err); }
-    console.log(body.url);
-    console.log(body.explanation);
-    console.log(err)
+    console.log(body);
   })
 };
 
@@ -49,7 +47,7 @@ const getStories = (callback) => {
     return () => (request.get(storiesURL + storyParameters, {json: true, headers: {
       'X-TrackerToken': PIVOTAL_API_TOKEN
     }}, (err, res, body) => {
-      groupedStories[state] = body
+      groupedStories[state] = body.filter(({owned_by_id}) => owned_by_id.toString() === PIVOTAL_USER_ID)
       requestChain()
     }))
   }, () => callback(groupedStories))()
@@ -60,9 +58,8 @@ const formatStory = (story) => (
 ${story.url}`)
 
 const outlineGroupedStories = (text, stories) => {
-  const userStories = stories.filter(({owned_by_id}) => owned_by_id.toString() === PIVOTAL_USER_ID)
-  if(userStories.length === 0) return ''
-  const formmattedStories = userStories.map(formatStory)
+  if(stories.length === 0) return ''
+  const formmattedStories = stories.map(formatStory)
                                        .join("\n")
   return `${text}
 ${formmattedStories}`
@@ -82,7 +79,10 @@ ${outlineGroupedStories('In Progress:', groupedStories.started)}`
 
 // getStories(writeToSlack)
 var CronJob = chron.CronJob;
-new CronJob('* 0-51 20-21 * * 1-5', function() {
-  console.log('You will see this message every second');
-}, null, true, 'America/Los_Angeles')
+const job = new CronJob('00 27 22 * * 1-5', function() {
+  console.log('writing daily to slack');
+  getStories(writeToSlack)
+})
+
+job.start()
 
