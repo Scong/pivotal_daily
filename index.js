@@ -1,5 +1,6 @@
 const request = require('request');
 const dotenv = require('dotenv');
+const chron = require('cron');
 dotenv.config();
 
 const { 
@@ -11,6 +12,10 @@ const newSlackMessageURL = "https://slack.com/api/chat.meMessage"
 const storiesURL = `https://www.pivotaltracker.com/services/v5/projects/${PIVOTAL_PROJECT_ID}/stories`
 
 const writeToSlack = (groupedStories) => {
+  
+  // don't write to slack if no active stories.
+  if(groupedStories.finished.length === 0 && 
+     groupedStories.started.length === 0) return
   const message = generateDaily(groupedStories)
 
   const messageBody = {
@@ -75,5 +80,9 @@ ${outlineGroupedStories('In Progress:', groupedStories.started)}`
   return daily
 }
 
-getStories(writeToSlack)
+// getStories(writeToSlack)
+var CronJob = chron.CronJob;
+new CronJob('* 0-51 20-21 * * 1-5', function() {
+  console.log('You will see this message every second');
+}, null, true, 'America/Los_Angeles')
 
