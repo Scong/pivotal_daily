@@ -167,7 +167,7 @@ const storyGrouper = (story) => {
             last(story.transitions) === 'accepted') {
     return 'finished'
   } else if(last(story.transitions) === 'started') {
-    return 'finished'
+    return 'started'
   } else if(last(story.transitions) === 'added') {
     return 'added'
   } else {
@@ -191,7 +191,6 @@ ${outlinedStories}`
 
 module.exports.generate = (date) => getStoryData((message) => console.log(message), date)
 
-module.exports.generate(new Date(2018, 11, 7))
 module.exports.init = (date = new Date()) => {
   var CronJob = chron.CronJob;
   const job = new CronJob('00 27 22 * * 1-5', function() {
