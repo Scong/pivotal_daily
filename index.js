@@ -37,10 +37,6 @@ const getStoryResource = (activity) => {
   })
 }
 
-const isReportedComment = (commentValue) => {
-  return commentValue.includes("note:")
-}
-
 const getChangeCommentType = (resource) => {
   return resource.new_values.text
 }
@@ -49,7 +45,7 @@ const reportedCommentValue = (activity) => {
   const commentObj = activity.changes.find((resource) => {
     if(resource.kind === 'comment') {
       const commentText = getChangeCommentType(resource)
-      return commentText.includes('<=>')
+      return commentText && commentText.includes('<=>')
     }
   })
 
@@ -195,6 +191,7 @@ ${outlinedStories}`
 
 module.exports.generate = (date) => getStoryData((message) => console.log(message), date)
 
+module.exports.generate(new Date(2018, 11, 7))
 module.exports.init = (date = new Date()) => {
   var CronJob = chron.CronJob;
   const job = new CronJob('00 27 22 * * 1-5', function() {
