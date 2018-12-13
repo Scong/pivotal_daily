@@ -172,6 +172,10 @@ const storyGrouper = (story) => {
     return 'finished'
   } else if(last(story.transitions) === 'started') {
     return 'finished'
+  } else if(last(story.transitions) === 'added') {
+    return 'added'
+  } else {
+    return 'uncategorized'
   }
 }
 
