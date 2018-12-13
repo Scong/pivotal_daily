@@ -124,7 +124,7 @@ const getStoryData = (callback, date = new Date()) => {
             groupedStories
           })
         }
-        callback(generateDaily(groupedStories))
+        callback(generateDaily(groupedStories, date))
       })
     })
   })
@@ -179,8 +179,8 @@ const storyGrouper = (story) => {
   }
 }
 
-const generateDaily = (storyData) => {
-  const dateString = new Date().toString().substr(0, 10)
+const generateDaily = (storyData, date) => {
+  const dateString = date.toString().substr(0, 10)
 
   
   const outlinedStories = map(groupBy(storyData, storyGrouper), (value, key) => {
