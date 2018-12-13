@@ -15,7 +15,6 @@ const storiesURL = `https://www.pivotaltracker.com/services/v5/projects/${PIVOTA
 const activityURL = `https://www.pivotaltracker.com/services/v5/my/activity`
 
 const writeToSlack = (message) => {
-
   const messageBody = {
     channel: DAILY_SLACK_CHANNEL,
     text: message
@@ -100,7 +99,8 @@ const getStoryData = (callback, date = new Date()) => {
     request.get(snapshotsURL + snapshotParameters, {json: true, headers: {
       'X-TrackerToken': PIVOTAL_API_TOKEN
     }}, (err, res, snapshotData) => {
-      const storyIds = snapshotData[0].current.map((snap) => snap.story_id).join(',')
+      const fetchedSnapshot = (snapshotData[0] && snapshotData[0].current) || []
+      const storyIds = (fetchedSnapshot.map((snap) => snap.story_id)).join(',')
       const storiesParameters = `?filter=id:${storyIds} owner:${PIVOTAL_USER_ID}`
       request.get(storiesURL + storiesParameters, {json: true, headers: {
         'X-TrackerToken': PIVOTAL_API_TOKEN
@@ -110,18 +110,20 @@ const getStoryData = (callback, date = new Date()) => {
         
         const groupedStoriesFromActivityData = groupStories(filteredActivityData)
         let groupedStories = groupedStoriesFromActivityData
-        stories.forEach((story) => {
-          const snapshot = snapshotData[0].current.find((snap) => snap.story_id === story.id)
-          if(snapshot.state === 'finished' ||
-             snapshot.state === 'started' || 
-             snapshot.state === 'rejected') {
-            groupedStories[story.id] = groupedStories[story.id] || {}
-            groupedStories[story.id].state = snapshot.state
-            groupedStories[story.id].name = story.name
-            groupedStories[story.id].url = story.url
-          }
-          groupedStories
-        })
+        if(stories.length > 0 && fetchedSnapshot.length > 0) {
+          stories.forEach((story) => {
+            const snapshot = fetchedSnapshot.find((snap) => snap.story_id === story.id)
+            if(snapshot.state === 'finished' ||
+              snapshot.state === 'started' || 
+              snapshot.state === 'rejected') {
+              groupedStories[story.id] = groupedStories[story.id] || {}
+              groupedStories[story.id].state = snapshot.state
+              groupedStories[story.id].name = story.name
+              groupedStories[story.id].url = story.url
+            }
+            groupedStories
+          })
+        }
         callback(generateDaily(groupedStories))
       })
     })
